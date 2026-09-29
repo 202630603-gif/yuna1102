@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ko" class="h-full bg-slate-50 text-slate-800">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>변명의 신 (Excuse Master) - 맞춤형 위기탈출 변명 솔루션</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Font Awesome for additional badges/icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    }
+    /* Custom Pastel Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .kakao-yellow {
+      background-color: #FEE500;
+      color: #191919;
+    }
+    .kakao-bubble {
+      background-color: #FEE500;
+      color: #191919;
+    }
+    .chat-bubble-shadow {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col justify-between overflow-hidden antialiased selection:bg-amber-200 selection:text-slate-900 bg-slate-50">
+
+  <!-- Top Navigation Bar -->
+  <header class="h-16 border-b border-purple-100 bg-white/90 backdrop-blur-md shrink-0 flex items-center justify-between px-4 md:px-6 z-20 shadow-sm">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-300 via-orange-300 to-rose-300 flex items-center justify-center shadow-md shadow-amber-200/50">
+        <i data-lucide="shield-alert" class="w-5 h-5 text-amber-900 stroke-[2.5]"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+          변명의 신 <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold border border-amber-200">AI Excuse Master</span>
+        </h1>
+        <p class="text-xs text-slate-500 hidden sm:block">친근하고 재치있는 맞춤형 위기탈출 변명 솔루션</p>
+      </div>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="flex items-center space-x-2">
+      <!-- Mode Toggle Indicator -->
+      <span id="apiStatusBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="apiStatusText">Mock 시뮬레이터 모드</span>
+      </span>
+
+      <!-- API Key Setting Button -->
+      <button id="openApiModalBtn" class="p-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1.5 text-xs font-medium border border-slate-200">
+        <i data-lucide="key" class="w-4 h-4 text-amber-500"></i>
+        <span class="hidden md:inline">API 설정</span>
+      </button>
+
+      <!-- Reset Chat Button -->
+      <button id="resetChatBtn" title="새로운 변명 찾기" class="p-2 rounded-xl bg-slate-100 hover:bg-amber-100 text-slate-600 hover:text-amber-800 transition border border-slate-200">
+        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 overflow-hidden flex flex-col md:flex-row relative bg-slate-50">
+
+    <!-- Left / Top: Interactive Chat Interface -->
+    <section class="flex-1 flex flex-col h-full bg-slate-50/60 border-r border-slate-200/80 relative overflow-hidden">
+      <!-- Chat Header Info -->
+      <div class="px-4 py-2.5 bg-white/80 border-b border-slate-200 flex items-center justify-between text-xs text-slate-600">
+        <div class="flex items-center gap-2 font-medium">
+          <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
+          <span>AI 변명 컨설턴트 '아폴론' 대화 진행 중</span>
+        </div>
+        <div id="stepIndicator" class="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-bold text-xs border border-purple-200">
+          ✨ 질문 진행 중 (1/4)
+        </div>
+      </div>
+
+      <!-- Messages Container -->
+      <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4">
+        <!-- Messages rendered dynamically via JS -->
+      </div>
+
+      <!-- Input Area / Option Cards -->
+      <div class="p-3 md:p-4 bg-white border-t border-slate-200 space-y-3 shadow-lg">
+        <!-- Quick Option Buttons Container (When applicable) -->
+        <div id="quickOptionsContainer" class="flex flex-wrap gap-2 hidden">
+          <!-- Quick buttons inserted by JS -->
+        </div>
+
+        <!-- Text Input Bar -->
+        <form id="chatForm" class="flex items-center gap-2">
+          <div class="relative flex-1">
+            <input 
+              type="text" 
+              id="chatInput" 
+              placeholder="답변을 입력하거나 위 옵션을 선택해 주세요..." 
+              class="w-full bg-slate-50 text-slate-800 placeholder-slate-400 px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-200 text-sm transition shadow-inner pr-10"
+              autocomplete="off"
+            />
+          </div>
+          <button 
+            type="submit" 
+            id="sendBtn"
+            class="p-3 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-2xl transition flex items-center justify-center shrink-0 shadow-md shadow-amber-200 active:scale-95"
+          >
+            <i data-lucide="send" class="w-5 h-5"></i>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Right / Bottom: Solution & Kakao Preview Panel -->
+    <section id="solutionPanel" class="w-full md:w-[480px] lg:w-[540px] bg-white flex flex-col h-full border-t md:border-t-0 border-slate-200 overflow-y-auto hidden md:flex transition-all duration-300">
+      
+      <!-- Panel Header -->
+      <div class="p-4 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur z-10 shadow-sm">
+        <div class="flex items-center space-x-2">
+          <div class="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
+            <i data-lucide="wand-2" class="w-4 h-4"></i>
+          </div>
+          <h2 class="font-bold text-slate-800 text-base">맞춤형 변명 레시피</h2>
+        </div>
+        <span class="text-xs font-semibold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">3가지 스타일 제공</span>
+      </div>
+
+      <!-- Content Area -->
+      <div id="solutionContent" class="p-4 space-y-5 bg-slate-50/30 flex-1">
+        
+        <!-- Placeholder State when incomplete -->
+        <div id="solutionPlaceholder" class="py-20 flex flex-col items-center justify-center text-center space-y-4 px-6 text-slate-400">
+          <div class="w-16 h-16 rounded-3xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-500 shadow-sm">
+            <i data-lucide="message-square-heart" class="w-8 h-8"></i>
+          </div>
+          <p class="text-sm text-slate-600 leading-relaxed font-medium">왼쪽 채팅에서 질문에 답변을 맞춰주세요.<br>상황 분석 후 완벽한 변명 3가지가 이곳에 짜잔! 나타납니다.</p>
+        </div>
+
+        <!-- Generated Solutions Section (Hidden initially) -->
+        <div id="solutionResults" class="space-y-5 hidden">
+          
+          <!-- Situation Summary Card -->
+          <div class="bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 border border-amber-200/70 rounded-2xl p-4 space-y-2 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
+                <i data-lucide="search-check" class="w-3.5 h-3.5 text-amber-600"></i> 위기 진단 리포트
+              </span>
+              <span id="riskLevelBadge" class="text-xs px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200 font-semibold">위험도 분석 중</span>
+            </div>
+            <p id="summaryText" class="text-xs text-slate-700 leading-relaxed font-medium">상황 분석 결과가 출력됩니다.</p>
+          </div>
+
+          <!-- Tone Selector Tabs -->
+          <div class="space-y-2">
+            <label class="text-xs font-semibold text-slate-600 flex items-center justify-between">
+              <span>원하는 대처 스타일을 선택하세요:</span>
+              <span class="text-[11px] text-amber-600 font-normal">* 클릭 시 미리보기에 반영됩니다</span>
+            </label>
+            <div class="grid grid-cols-3 gap-2" id="toneTabButtons">
+              <button data-tone="apology" class="tone-tab p-2.5 rounded-2xl border border-amber-300 bg-amber-50 text-amber-900 text-xs font-semibold flex flex-col items-center gap-1 transition shadow-sm">
+                <i data-lucide="heart-handshake" class="w-4 h-4 text-amber-600"></i>
+                <span>진심 정석형</span>
+              </button>
+              <button data-tone="emergency" class="tone-tab p-2.5 rounded-2xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-medium flex flex-col items-center gap-1 transition">
+                <i data-lucide="zap" class="w-4 h-4 text-slate-400"></i>
+                <span>돌발 위기형</span>
+              </button>
+              <button data-tone="witty" class="tone-tab p-2.5 rounded-2xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-medium flex flex-col items-center gap-1 transition">
+                <i data-lucide="smile" class="w-4 h-4 text-slate-400"></i>
+                <span>분위기 전환형</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Solution Card Details -->
+          <div id="activeSolutionCard" class="bg-white border border-slate-200 rounded-2xl p-4 space-y-4 shadow-sm">
+            <!-- Header & Risk -->
+            <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 id="solutionTitle" class="font-bold text-sm text-slate-800">진심 어린 정석 사과형</h3>
+                <p id="solutionDesc" class="text-xs text-slate-500 mt-0.5">상대방의 감정을 어루만지며 정면 승부하는 가장 안전한 옵션</p>
+              </div>
+              <!-- Risk Stars -->
+              <div class="text-right shrink-0">
+                <div class="text-[11px] font-medium text-slate-400 mb-0.5">후폭풍 리스크</div>
+                <div id="riskStars" class="flex text-amber-400 text-xs space-x-0.5 justify-end">
+                  ★☆☆☆☆
+                </div>
+              </div>
+            </div>
+
+            <!-- Excuse Text Box -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                  <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-500"></i> 추천 전송 메시지
+                </span>
+                <button id="copyMsgBtn" class="text-xs text-amber-700 font-semibold hover:text-amber-800 flex items-center gap-1 transition px-2 py-0.5 bg-amber-50 hover:bg-amber-100 rounded-lg border border-amber-200">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  <span>문구 복사</span>
+                </button>
+              </div>
+              <div id="solutionText" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs leading-relaxed text-slate-800 font-normal whitespace-pre-line select-all shadow-inner">
+                불러오는 중...
+              </div>
+            </div>
+
+            <!-- Action Advice / Tip -->
+            <div class="p-3 rounded-xl bg-purple-50 border border-purple-200/80 flex items-start gap-2.5">
+              <div class="w-6 h-6 rounded-lg bg-purple-200/80 flex items-center justify-center text-purple-700 shrink-0 mt-0.5">
+                <i data-lucide="lightbulb" class="w-3.5 h-3.5"></i>
+              </div>
+              <div>
+                <span class="text-xs font-bold text-purple-900 block mb-0.5">행동 수칙 & 처세 꿀팁</span>
+                <p id="solutionTip" class="text-xs text-purple-950 leading-relaxed">메시지 전송 후 즉시 전화로 확인하거나 표정을 심각하게 유지하세요.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- KakaoTalk Messenger Simulator Preview -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-comment text-amber-400"></i> 카카오톡 전송 시뮬레이션
+              </span>
+              <span class="text-[11px] text-slate-400">실제 발송 전 어조 점검</span>
+            </div>
+
+            <!-- Kakao UI Frame -->
+            <div class="rounded-2xl overflow-hidden border border-slate-300 shadow-md bg-[#abc1d1]">
+              <!-- Kakao Header -->
+              <div class="bg-[#a0b4c4] px-4 py-2.5 flex items-center justify-between text-slate-800 text-xs font-medium">
+                <div class="flex items-center space-x-2">
+                  <i data-lucide="chevron-left" class="w-4 h-4 text-slate-700"></i>
+                  <span id="kakaoTargetName" class="font-bold text-slate-900">상대방</span>
+                </div>
+                <div class="flex items-center space-x-2 text-slate-700">
+                  <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                  <i data-lucide="menu" class="w-3.5 h-3.5"></i>
+                </div>
+              </div>
+
+              <!-- Kakao Chat Content Area -->
+              <div class="p-4 space-y-3 min-h-[160px] max-h-[220px] overflow-y-auto text-xs">
+                <!-- Date divider -->
+                <div class="flex justify-center">
+                  <span class="bg-black/10 text-white px-2.5 py-0.5 rounded-full text-[10px] font-medium">오늘</span>
+                </div>
+
+                <!-- Sent Bubble (User Kakao Style) -->
+                <div class="flex items-end justify-end space-x-1.5 pl-8">
+                  <div class="flex flex-col items-end space-y-0.5">
+                    <span class="text-[10px] text-slate-600 font-sans font-medium">읽음 1</span>
+                    <span id="kakaoTime" class="text-[9px] text-slate-600">오후 2:34</span>
+                  </div>
+                  <div id="kakaoPreviewMessage" class="kakao-bubble rounded-2xl rounded-tr-none px-3.5 py-2.5 text-xs leading-relaxed max-w-[82%] chat-bubble-shadow whitespace-pre-line break-words font-sans font-medium">
+                    메시지 선택 시 이곳에 미리보기가 나타납니다.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Kakao Bottom Input Mock -->
+              <div class="bg-white p-2 border-t border-slate-200/60 flex items-center justify-between text-slate-400 text-xs">
+                <div class="flex items-center space-x-2 px-2">
+                  <i data-lucide="plus" class="w-4 h-4 text-slate-400"></i>
+                  <span class="text-slate-400 text-[11px]">메시지 보내기...</span>
+                </div>
+                <div class="w-6 h-6 rounded-full bg-amber-300 flex items-center justify-center text-slate-800 shadow-sm">
+                  <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Action Buttons -->
+          <div class="pt-2 flex gap-2">
+            <button id="reGenerateBtn" class="flex-1 py-3 rounded-2xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 transition flex items-center justify-center gap-1.5 shadow-sm">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>다른 변명 다시 만들기</span>
+            </button>
+            <button id="copyAllBtn" class="flex-1 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-amber-200">
+              <i data-lucide="check" class="w-3.5 h-3.5"></i>
+              <span>현재 변명 즉시 복사</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Gemini API Configuration Modal -->
+  <div id="apiModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
+      <!-- Close Button -->
+      <button id="closeApiModalBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center space-x-3">
+        <div class="p-3 rounded-2xl bg-amber-100 border border-amber-200 text-amber-700">
+          <i data-lucide="key" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-slate-800 text-base">Gemini API 키 연동</h3>
+          <p class="text-xs text-slate-500">Google Gemini API 키를 등록하여 인공지능을 연결합니다.</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Gemini API Key</label>
+          <input 
+            type="password" 
+            id="apiKeyInput" 
+            placeholder="AIzaSy..." 
+            class="w-full bg-slate-50 text-slate-800 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-200 font-mono"
+          />
+          <p class="text-[11px] text-slate-400 leading-relaxed mt-2">
+            * 입력된 키는 서버로 저장되지 않으며 브라우저 내부에만 안전하게 머뭅니다.<br>
+            * 비워두실 경우 내장된 <b>스마트 모의 시뮬레이터</b>가 자동으로 즉시 응답합니다.
+          </p>
+        </div>
+
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+          <div class="text-xs font-semibold text-slate-700 flex items-center gap-1">
+            <i data-lucide="cpu" class="w-3.5 h-3.5 text-amber-500"></i> 사용 연동 모델
+          </div>
+          <div class="text-xs font-mono text-purple-700 font-medium">gemini-3-flash-preview</div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-2 pt-2">
+        <button id="clearApiKeyBtn" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">
+          초기화 (Mock 모드)
+        </button>
+        <button id="saveApiKeyBtn" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs transition shadow-md shadow-amber-200">
+          저장하기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white border border-slate-800 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 text-xs z-50 transform translate-y-10 opacity-0 transition-all duration-300 pointer-events-none">
+    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toastMsg">복사되었습니다!</span>
+  </div>
+
+  <script>
+    // App State Management
+    const state = {
+      apiKey: localStorage.getItem('gemini_api_key') || '',
+      currentStep: 0, // 0: Target, 1: Emotion, 2: Situation, 3: Real Reason
+      answers: {
+        target: '',
+        emotion: '',
+        situation: '',
+        realReason: ''
+      },
+      generatedSolutions: null,
+      selectedTone: 'apology', // 'apology', 'emergency', 'witty'
+      isGenerating: false
+    };
+
+    // Step Questions & Preset Options
+    const stepsData = [
+      {
+        key: 'target',
+        title: '변명 대상',
+        question: '누구에게 변명이 필요하신가요? 상대방과의 관계를 선택해 주세요.',
+        options: ['직장 상사 / 팀장님', '연인 / 배우자', '친한 친구', '중요한 고객사', '학교 교수님 / 선생님', '직접 입력']
+      },
+      {
+        key: 'emotion',
+        title: '상대방의 화난 정도',
+        question: '현재 상대방의 감정 상태나 화난 수위는 어느 정도인가요?',
+        options: ['🔥 폭발 직전 (매우 화남)', '😠 불쾌함 / 서운함 (중간)', '😐 덤덤하지만 해명 필요', '❓ 아직 모름 / 사전 방어']
+      },
+      {
+        key: 'situation',
+        title: '위기 상황',
+        question: '어떤 곤란한 상황인가요? 핵심 사건을 선택하거나 적어주세요.',
+        options: ['약속 / 출근 지각', '업무 / 과제 기한 제출 누락', '연락 두절 / 문자 읽고 씹음', '약속 / 일정 갑작스런 취소', '실수로 인한 사고 / 파손']
+      },
+      {
+        key: 'realReason',
+        title: '솔직한 실제 원인',
+        question: '말 못 할 실제 이유(원인)는 무엇이었나요? (솔직하게 알려주실수록 더 정교해집니다)',
+        options: ['늦잠 자서 / 멍때리다가', '귀찮아서 / 가기 싫어서', '깜빡 잊어버려서', '다른 일정(놀기)과 겹쳐서']
+      }
+    ];
+
+    // Mock Response Generator (When API Key is missing or user prefers offline)
+    const mockSolutionsGenerator = (ans) => {
+      const target = ans.target || '상대방';
+      const situation = ans.situation || '곤란한 상황';
+      const reason = ans.realReason || '개인적 사정';
+
+      return {
+        summary: `[${target}] 대상 / [${situation}] 위기 상황 감지. 상대방의 화난 상태에 맞춘 맞춤 레시피입니다.`,
+        riskOverall: 'Level 2 ~ 4 (사유별 차등)',
+        solutions: {
+          apology: {
+            title: '진심 어린 정석 사과형',
+            risk: 1,
+            stars: '★☆☆☆☆',
+            text: `${target}님, 정말 죄송합니다.\n제가 미리 제대로 챙겼어야 했는데 변명의 여지없이 제 불찰입니다. 이유 여하를 막론하고 크게 불편을 드려 깊이 반성하고 있습니다.\n다음부터는 절대로 같은 실수가 없도록 하겠습니다. 실수를 수습하기 위해 지금 즉시 최선을 다하겠습니다. 다시 한번 진심으로 죄송합니다.`,
+            tip: '핑계를 대지 않고 100% 본인 과실로 인정하면 상대방의 분노 속도가 가장 빠르게 줄어듭니다.'
+          },
+          emergency: {
+            title: '돌발 위기 탈출형',
+            risk: 3,
+            stars: '★★★☆☆',
+            text: `${target}님, 연락이 늦어져 정말 죄송합니다!\n갑작스럽게 건물 정전/네트워크 오작동으로 통신이 완전 차단되는 바람에 바로 말씀을 드리지 못했습니다.\n급히 상황 수습을 마치고 바로 연락드립니다. 너무 놀라셨을 텐데 정말 죄송합니다.`,
+            tip: '어쩔 수 없는 외부 요인(불가항력)을 명분으로 내세우되, 추후 세부 내용 불일치로 걸리지 않도록 주의하세요.'
+          },
+          witty: {
+            title: '분위기 전환 위트형',
+            risk: 4,
+            stars: '★★★★☆',
+            text: `${target}님! 제가 오늘 아침부터 유독 기괴한 삼재 현상이 터지는 바람에 멘붕이 왔습니다...😭\n정신 바짝 차리고 바로 달려가겠습니다! 엄청 기다리셨을 텐데 시원한 커피라도 사 들고 머리 숙여 사과드리겠습니다!`,
+            tip: '친밀한 관계나 상대방 성향이 유연할 때 효과적입니다. 무거운 분위기를 가볍게 환기시킬 수 있습니다.'
+          }
+        }
+      };
+    };
+
+    // DOM Elements
+    const chatMessages = document.getElementById('chatMessages');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const quickOptionsContainer = document.getElementById('quickOptionsContainer');
+    const stepIndicator = document.getElementById('stepIndicator');
+    
+    // API Modal Elements
+    const apiModal = document.getElementById('apiModal');
+    const openApiModalBtn = document.getElementById('openApiModalBtn');
+    const closeApiModalBtn = document.getElementById('closeApiModalBtn');
+    const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+    const clearApiKeyBtn = document.getElementById('clearApiKeyBtn');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const apiStatusBadge = document.getElementById('apiStatusBadge');
+    const apiStatusText = document.getElementById('apiStatusText');
+    const resetChatBtn = document.getElementById('resetChatBtn');
+
+    // Solution Panel Elements
+    const solutionPlaceholder = document.getElementById('solutionPlaceholder');
+    const solutionResults = document.getElementById('solutionResults');
+    const summaryText = document.getElementById('summaryText');
+    const riskLevelBadge = document.getElementById('riskLevelBadge');
+    const solutionTitle = document.getElementById('solutionTitle');
+    const solutionDesc = document.getElementById('solutionDesc');
+    const riskStars = document.getElementById('riskStars');
+    const solutionText = document.getElementById('solutionText');
+    const solutionTip = document.getElementById('solutionTip');
+    const kakaoTargetName = document.getElementById('kakaoTargetName');
+    const kakaoPreviewMessage = document.getElementById('kakaoPreviewMessage');
+    const kakaoTime = document.getElementById('kakaoTime');
+    const copyMsgBtn = document.getElementById('copyMsgBtn');
+    const copyAllBtn = document.getElementById('copyAllBtn');
+    const reGenerateBtn = document.getElementById('reGenerateBtn');
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+
+    // Initialize App
+    function init() {
+      lucide.createIcons();
+      updateApiStatusUI();
+      renderChatStep();
+      setupEventListeners();
+      updateKakaoTime();
+    }
+
+    // Update Kakao Simulator Time
+    function updateKakaoTime() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? '오후' : '오전';
+      hours = hours % 12 || 12;
+      kakaoTime.textContent = `${ampm} ${hours}:${minutes}`;
+    }
+
+    // Toast Notification helper
+    function showToast(msg) {
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-y-10', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-10', 'opacity-0');
+      }, 2500);
+    }
+
+    // Update API Key Status Indicator
+    function updateApiStatusUI() {
+      if (state.apiKey && state.apiKey.trim().length > 0) {
+        apiStatusBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 shadow-sm';
+        apiStatusBadge.querySelector('span:first-child').className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+        apiStatusText.textContent = 'Gemini AI 연결됨';
+      } else {
+        apiStatusBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm';
+        apiStatusBadge.querySelector('span:first-child').className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+        apiStatusText.textContent = 'Mock 시뮬레이터 모드';
+      }
+    }
+
+    // Append Chat Message Bubble
+    function appendMessage(sender, text) {
+      const isAI = sender === 'ai';
+      const wrapper = document.createElement('div');
+      wrapper.className = `flex ${isAI ? 'justify-start' : 'justify-end'} animate-fade-in`;
+
+      const bubble = document.createElement('div');
+      bubble.className = `max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 text-xs md:text-sm leading-relaxed ${
+        isAI 
+          ? 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-sm' 
+          : 'bg-gradient-to-r from-amber-400 to-orange-400 text-white font-medium rounded-tr-none shadow-md'
+      }`;
+
+      if (isAI) {
+        bubble.innerHTML = `
+          <div class="flex items-center gap-1.5 mb-1 font-bold text-amber-600 text-[11px]">
+            <i data-lucide="bot" class="w-3.5 h-3.5"></i> 변명의 신 아폴론
+          </div>
+          <div>${text}</div>
+        `;
+      } else {
+        bubble.textContent = text;
+      }
+
+      wrapper.appendChild(bubble);
+      chatMessages.appendChild(wrapper);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      lucide.createIcons();
+    }
+
+    // Render Current Step Prompt & Quick Buttons
+    function renderChatStep() {
+      if (state.currentStep < stepsData.length) {
+        const step = stepsData[state.currentStep];
+        stepIndicator.textContent = `✨ 질문 진행 중 (${state.currentStep + 1}/4)`;
+        
+        appendMessage('ai', step.question);
+
+        // Render Quick Option Buttons
+        quickOptionsContainer.innerHTML = '';
+        if (step.options && step.options.length > 0) {
+          quickOptionsContainer.classList.remove('hidden');
+          step.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'px-3.5 py-2 rounded-xl bg-white hover:bg-amber-50 hover:border-amber-300 text-slate-700 hover:text-amber-800 border border-slate-200 text-xs font-medium transition shadow-sm active:scale-95';
+            btn.textContent = opt;
+            btn.addEventListener('click', () => handleUserInput(opt));
+            quickOptionsContainer.appendChild(btn);
+          });
+        } else {
+          quickOptionsContainer.classList.add('hidden');
+        }
+      } else {
+        // Conversation complete -> Generate Solution
+        stepIndicator.className = "px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-200";
+        stepIndicator.textContent = '✨ 맞춤 솔루션 완료';
+        quickOptionsContainer.classList.add('hidden');
+        appendMessage('ai', '입력해주신 모든 정황을 바탕으로 최적의 맞춤형 변명 솔루션을 생성하고 있습니다. 잠시만 기다려주세요...');
+        generateFinalSolutions();
+      }
+    }
+
+    // Handle User Answer Step Logic
+    function handleUserInput(inputVal) {
+      if (!inputVal || inputVal.trim() === '' || state.isGenerating) return;
+
+      const trimmed = inputVal.trim();
+      const currentStepObj = stepsData[state.currentStep];
+
+      // Save answer
+      state.answers[currentStepObj.key] = trimmed;
+
+      // Show user message
+      appendMessage('user', trimmed);
+      chatInput.value = '';
+
+      // Increment Step
+      state.currentStep++;
+
+      // Small delay before AI response
+      setTimeout(() => {
+        renderChatStep();
+      }, 400);
+    }
+
+    // Generate Solution via Gemini API or Mock Engine
+    async function generateFinalSolutions() {
+      state.isGenerating = true;
+
+      try {
+        if (state.apiKey && state.apiKey.trim() !== '') {
+          // Call Gemini API
+          const response = await callGeminiAPI(state.answers);
+          state.generatedSolutions = response;
+        } else {
+          // Use Mock Generator
+          await new Promise(res => setTimeout(res, 1200)); // Simulate thinking network delay
+          state.generatedSolutions = mockSolutionsGenerator(state.answers);
+        }
+
+        renderSolutionPanel();
+        appendMessage('ai', '🎉 맞춤형 변명 3가지 생성이 완료되었습니다! 오른쪽 솔루션 카드와 카카오톡 미리보기를 확인해 보세요.');
+      } catch (err) {
+        console.error('Gemini API Error:', err);
+        appendMessage('ai', '⚠️ Gemini API 호출 중 오류가 발생하여 내장 시뮬레이션 솔루션으로 대체 제공합니다.');
+        state.generatedSolutions = mockSolutionsGenerator(state.answers);
+        renderSolutionPanel();
+      } finally {
+        state.isGenerating = false;
+      }
+    }
+
+    // Gemini API Direct Fetch Integration
+    async function callGeminiAPI(answers) {
+      const apiKey = state.apiKey.trim();
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      const systemPrompt = `당신은 대한민국 최고의 위기 관리 및 변명 컨설턴트 '변명의 신'입니다. 
+사용자의 곤란한 상황을 분석하여 상대방과의 관계가 파탄 나지 않도록 도울 맞춤형 변명 3가지를 제시해 주어야 합니다.
+
+반드시 아래 JSON 형식으로만 응답해야 합니다 (다른 서론/결론 문구 금지):
+{
+  "summary": "위기 상황 1줄 종합 분석",
+  "riskOverall": "위험도 레벨 예: Level 3 (주의 요망)",
+  "solutions": {
+    "apology": {
+      "title": "진심 어린 정석 사과형",
+      "risk": 1,
+      "stars": "★☆☆☆☆",
+      "text": "실제 전송할 완성형 메시지 내용",
+      "tip": "이 변명을 사용할 때 주의할 정황이나 대처 팁 1문장"
+    },
+    "emergency": {
+      "title": "돌발 위기 탈출형",
+      "risk": 3,
+      "stars": "★★★☆☆",
+      "text": "실제 전송할 완성형 메시지 내용",
+      "tip": "주의할 정황이나 대처 팁 1문장"
+    },
+    "witty": {
+      "title": "분위기 전환 위트형",
+      "risk": 4,
+      "stars": "★★★★☆",
+      "text": "실제 전송할 완성형 메시지 내용",
+      "tip": "주의할 정황이나 대처 팁 1문장"
+    }
+  }
+}`;
+
+      const userPrompt = `
+- 변명 대상 (상대방 관계): ${answers.target}
+- 상대방 화난 상태: ${answers.emotion}
+- 곤란한 위기 상황: ${answers.situation}
+- 실제 원인 (솔직 사유): ${answers.realReason}
+
+위 정보를 종합하여 가장 설득력 있고 완벽한 변명 메시지 3종류(사과형, 돌발상황형, 위트형)를 작성해주세요.`;
+
+      const payload = {
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: userPrompt }]
+          }
+        ],
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      };
+
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: API Call Failed`);
+      }
+
+      const data = await res.json();
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) throw new Error('Invalid Gemini API Response Structure');
+
+      return JSON.parse(rawText);
+    }
+
+    // Display Solutions in Right Panel
+    function renderSolutionPanel() {
+      if (!state.generatedSolutions) return;
+
+      const solData = state.generatedSolutions;
+      
+      // Show Panel view
+      solutionPlaceholder.classList.add('hidden');
+      solutionResults.classList.remove('hidden');
+
+      // Update Summary & Badge
+      summaryText.textContent = solData.summary || '상황 분석 결과입니다.';
+      riskLevelBadge.textContent = solData.riskOverall || '위험도 분석 완료';
+
+      // Set Target Name for Kakao Header
+      kakaoTargetName.textContent = state.answers.target || '상대방';
+
+      // Default Active Tone Rendering
+      updateActiveToneView(state.selectedTone);
+    }
+
+    // Switch Tone View (Apology, Emergency, Witty)
+    function updateActiveToneView(toneKey) {
+      if (!state.generatedSolutions || !state.generatedSolutions.solutions) return;
+
+      state.selectedTone = toneKey;
+      const current = state.generatedSolutions.solutions[toneKey];
+
+      if (!current) return;
+
+      // Update Tab Styles
+      document.querySelectorAll('.tone-tab').forEach(tab => {
+        const isSelected = tab.getAttribute('data-tone') === toneKey;
+        if (isSelected) {
+          tab.className = 'tone-tab p-2.5 rounded-2xl border border-amber-300 bg-amber-50 text-amber-900 text-xs font-semibold flex flex-col items-center gap-1 transition shadow-sm';
+          tab.querySelector('i').className = 'w-4 h-4 text-amber-600';
+        } else {
+          tab.className = 'tone-tab p-2.5 rounded-2xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-medium flex flex-col items-center gap-1 transition';
+          tab.querySelector('i').className = 'w-4 h-4 text-slate-400';
+        }
+      });
+
+      // Update Card Details
+      solutionTitle.textContent = current.title;
+      riskStars.textContent = current.stars || '★★★☆☆';
+      solutionText.textContent = current.text;
+      solutionTip.textContent = current.tip;
+
+      // Description helper
+      if (toneKey === 'apology') {
+        solutionDesc.textContent = '상대방의 감정을 어루만지며 정면 승부하는 가장 안전한 옵션';
+      } else if (toneKey === 'emergency') {
+        solutionDesc.textContent = '불가항력적인 외부 상황을 명분으로 내세우는 솔루션';
+      } else {
+        solutionDesc.textContent = '분위기를 밝게 전환하여 상황을 넘기는 위트있는 센스 옵션';
+      }
+
+      // Update Kakao Simulator Bubble
+      kakaoPreviewMessage.textContent = current.text;
+    }
+
+    // Event Listeners Setup
+    function setupEventListeners() {
+      // Chat Form Submit
+      chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleUserInput(chatInput.value);
+      });
+
+      // Tone Switch Tabs Click
+      document.getElementById('toneTabButtons').addEventListener('click', (e) => {
+        const btn = e.target.closest('.tone-tab');
+        if (btn) {
+          const tone = btn.getAttribute('data-tone');
+          updateActiveToneView(tone);
+        }
+      });
+
+      // Copy Single Message
+      copyMsgBtn.addEventListener('click', () => {
+        const text = solutionText.textContent.trim();
+        copyToClipboard(text);
+      });
+
+      // Copy All (Main Action)
+      copyAllBtn.addEventListener('click', () => {
+        const text = solutionText.textContent.trim();
+        copyToClipboard(text);
+      });
+
+      // Regenerate / Reset
+      reGenerateBtn.addEventListener('click', resetConversation);
+      resetChatBtn.addEventListener('click', resetConversation);
+
+      // Modal Controls
+      openApiModalBtn.addEventListener('click', () => {
+        apiKeyInput.value = state.apiKey;
+        apiModal.classList.remove('hidden');
+      });
+
+      closeApiModalBtn.addEventListener('click', () => {
+        apiModal.classList.add('hidden');
+      });
+
+      saveApiKeyBtn.addEventListener('click', () => {
+        state.apiKey = apiKeyInput.value.trim();
+        localStorage.setItem('gemini_api_key', state.apiKey);
+        updateApiStatusUI();
+        apiModal.classList.add('hidden');
+        showToast('API 키 설정이 저장되었습니다!');
+      });
+
+      clearApiKeyBtn.addEventListener('click', () => {
+        state.apiKey = '';
+        localStorage.removeItem('gemini_api_key');
+        apiKeyInput.value = '';
+        updateApiStatusUI();
+        apiModal.classList.add('hidden');
+        showToast('Mock 시뮬레이터 모드로 전환되었습니다.');
+      });
+    }
+
+    // Helper: Copy Text safely
+    function copyToClipboard(text) {
+      if (!text) return;
+      
+      // Fallback or ExecCommand for iframe environment
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('메시지가 클립보드에 복사되었습니다!');
+      } catch (err) {
+        console.error('Copy failed:', err);
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // Reset Chat Flow
+    function resetConversation() {
+      state.currentStep = 0;
+      state.answers = { target: '', emotion: '', situation: '', realReason: '' };
+      state.generatedSolutions = null;
+      
+      chatMessages.innerHTML = '';
+      solutionResults.classList.add('hidden');
+      solutionPlaceholder.classList.remove('hidden');
+
+      renderChatStep();
+      showToast('새로운 변명 찾기가 시작되었습니다.');
+    }
+
+    // Launch App on DOM ready
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
